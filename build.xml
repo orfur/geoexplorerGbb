@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="geoexplorer" default="dist" basedir=".">
+
+    <description>
+        GeoExplorer Build File
+    </description>
+
+    <property name="build" location="build"/>
+    <property name="app.proxy.geoserver" value="http://10.1.1.145:8080/geoserver/"/>
+    <property name="app.username" value="murat"/>
+    <property name="app.password" value="858585"/>
+    <property name="app.maksUserName" value="KRM-7143746"/>
+    <property name="app.maksPassword" value="GAntep2013"/>
+    <property name="app.port" value="8890"/>
+    <property name="tomcat_folder" value="C:/apache-tomcat-7.0.23/webapps/"/>
+
+    <target name="init">
+
+        <echo message="building ringo jars"/>
+        <ant dir="externals/ringojs" target="jar"/>
+        <copy todir="externals/ringojs/lib" flatten="true" includeEmptyDirs="false">
+            <fileset dir="lib"/>
+        </copy>
+
+    </target>
+
+    <target name="buildjs">
+
+        <mkdir dir="${build}/${ant.project.name}/WEB-INF/app/static/script"/>
+        <java jar="externals/ringojs/run.jar" fork="true" failonerror="true">
+            <sysproperty key="ringo.home" path="externals/ringojs"/>
+            <arg path="externals/buildkit/lib/buildkit/build.js"/>
+            <arg line="-o ${build}/${ant.project.name}/WEB-INF/app/static/script buildjs.cfg"/>
+        </java>
+
+    </target>
+
+    <target name="dist" depends="init, buildjs, redist"/>
+
+    <target name="redist">
+
+        <mkdir dir="${build}/${ant.project.name}"/>
+
+        <copy todir="${build}/${ant.project.name}">
+            <fileset dir="src/main/webapp/">
+            </fileset>
+        </copy>
+        <copy todir="${build}/${ant.project.name}/WEB-INF/lib" flatten="true" includeEmptyDirs="false">
+            <fileset dir="externals/ringojs/lib"/>
+        </copy>
+        <copy todir="${build}/${ant.project.name}/WEB-INF/app">
+            <fileset dir="app">
+                <exclude name="**/externals/**"/>
+                <exclude name="**/script/**"/>
+            </fileset>
+        </copy>
+        <!-- copy Ext resources -->
+        <copy todir="${build}/${ant.project.name}/WEB-INF/app/static/externals/ext">
+            <fileset dir="app/static/externals/ext"/>
+        </copy>
+        <!-- copy OpenLayers resources -->
+        <copy todir="${build}/${ant.project.name}/WEB-INF/app/static/externals/openlayers/theme">
+            <fileset dir="app/static/externals/openlayers/theme"/>
+        </copy>
+        <!-- copy GeoExt resources -->
+        <copy todir="${build}/${ant.project.name}/WEB-INF/app/static/externals/GeoExt/resources">
+            <fileset dir="app/static/externals/GeoExt/resources"/>
+        </copy>
+        <!-- copy gxp resources -->
+        <copy todir="${build}/${ant.project.name}/WEB-INF/app/static/externals/gxp/src/theme">
+            <fileset dir="app/static/externals/gxp/src/theme"/>
+        </copy>
+        <!-- copy PrintPreview resources -->
+        <copy todir="${build}/${ant.project.name}/WEB-INF/app/static/externals/PrintPreview/resources">
+            <fileset dir="app/static/externals/PrintPreview/resources"/>
+        </copy>
+        <!-- copy Proj4js resources -->
+        <copy todir="${build}/${ant.project.name}/WEB-INF/app/static/externals/proj4js">
+            <fileset dir="app/static/externals/proj4js"/>
+        </copy>
+
+    </target>
+
+    <target name="war" depends="dist">
+        <war destfile="${build}/${ant.project.name}.war">
+            <fileset dir="${build}/${ant.project.name}"/>
+        </war>
+        <copy file="${build}/${ant.project.name}.war" todir="${tomcat_folder}"/>
+    </target>
+
+    <target name="debug">
+        <java jar="externals/ringojs/run.jar" fork="true">
+            <sysproperty key="app.proxy.geoserver" value="${app.proxy.geoserver}"/>
+            <sysproperty key="app.username" value="${app.username}"/>
+            <sysproperty key="app.password" value="${app.password}"/>
+            <sysproperty key="ringo.home" path="externals/ringojs"/>
+            <sysproperty key="app.maksUserName" value="${app.maksUserName}"/>
+            <sysproperty key="app.maksPassword" value="${app.maksPassword}"/>
+
+            <!-- <jvmarg value="-XX:+HeapDumpOnOutOfMemoryError"/> -->
+            <arg path="app/main.js"/>
+            <arg line="-p ${app.port}"/>
+        </java>
+    </target>
+
+    <target name="debugall">
+        <java jar="externals/ringojs/run.jar" fork="true">
+            <sysproperty key="app.proxy.geoserver" value="${app.proxy.geoserver}"/>
+            <sysproperty key="app.username" value="${app.username}"/>
+            <sysproperty key="app.password" value="${app.password}"/>
+            <sysproperty key="ringo.home" path="externals/ringojs"/>
+            <sysproperty key="app.maksUserName" value="${app.maksUserName}"/>
+            <sysproperty key="app.maksPassword" value="${app.maksPassword}"/>
+            <arg value="-d"/>
+            <arg path="app/main.js"/>
+            <arg line="-p ${app.port}"/>
+        </java>
+    </target>
+
+    <target name="test">
+        <java jar="externals/ringojs/run.jar" fork="true" failonerror="yes">
+            <sysproperty key="ringo.home" path="externals/ringojs"/>
+            <arg path="tests/all.js"/>
+        </java>
+    </target>
+
+    <target name="clean" description="remove previous build">
+        <delete dir="${tomcat_folder}/geoexplorer"/>
+        <delete dir="${build}"/>
+    </target>
+
+</project>

@@ -1,0 +1,232 @@
+<% extends ./base.html %>
+<% subskin extrahead %>
+<!-- OpenLayers resources -->
+<link rel="stylesheet" type="text/css" href="externals/openlayers/theme/default/style.css">
+<script type="text/javascript" src="script/OpenLayers.js"></script>
+
+<!-- GeoExt resources -->
+<link rel="stylesheet" type="text/css" href="externals/GeoExt/resources/css/popup.css">
+<link rel="stylesheet" type="text/css" href="externals/GeoExt/resources/css/layerlegend.css">
+<link rel="stylesheet" type="text/css" href="externals/GeoExt/resources/css/gxtheme-gray.css">
+<script type="text/javascript" src="script/GeoExt.js"></script>
+
+<!-- gxp resources -->
+<link rel="stylesheet" type="text/css" href="externals/gxp/src/theme/all.css">
+<script type="text/javascript" src="script/gxp.js"></script>
+
+<!-- proj4js resources -->
+<!-- <script type="text/javascript" src="externals/proj4js/lib/proj4js-compressed.js"></script>-->
+<script type="text/javascript" src="externals/proj4js/lib/proj4js-combined.js"></script>
+
+<!-- GeoExplorer resources -->
+<link rel="stylesheet" type="text/css" href="theme/app/geoexplorer.css" />
+<!--[if IE]><link rel="stylesheet" type="text/css" href="theme/app/ie.css"/><![endif]-->
+<link rel="stylesheet" type="text/css" href="theme/ux/colorpicker/color-picker.ux.css" />
+<script type="text/javascript" src="script/GeoExplorer.js"></script>
+<script type="text/javascript" src="script/ux.js"></script>
+
+<!-- PrintPreview resources -->
+<link rel="stylesheet" type="text/css" href="externals/PrintPreview/resources/css/printpreview.css">
+<script type="text/javascript" src="script/PrintPreview.js"></script>
+
+<script>
+    // optionally set locale based on query string parameter
+    if (GeoExt.Lang) {
+        GeoExt.Lang.set(OpenLayers.Util.getParameters()["locale"] || GeoExt.Lang.locale);
+    }
+    Ext.BLANK_IMAGE_URL = "theme/app/img/blank.gif";
+    OpenLayers.ImgPath = "theme/app/img/";
+    // optionally set locale based on query string parameter
+    if (GeoExt.Lang) {
+        GeoExt.Lang.set(OpenLayers.Util.getParameters()["locale"] || GeoExt.Lang.locale);
+    }
+    GeoExt.Lang.set("tr");
+    //Proj4js.defs["EPSG:40001"] = "+proj=tmerc +lat_0=0 +lon_0=30 +k=1 +x_0=500000 +y_0=0 +ellps=intl +datum=ITRF96 +units=m +no_defs";
+    //Proj4js.defs["EPSG:900915"] = "+proj=tmerc +lat_0=0 +lon_0=30 +k=1 +x_0=500000 +y_0=0 +ellps=intl +datum=ITRF96 +units=m +no_defs";
+
+    var point = new OpenLayers.LonLat(37.018103, 37.267864);//36.933916, 37.397599);
+    point.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:102113"));//map.getProjectionObject());
+
+    var app = new GeoExplorer.Composer({
+                authStatus: <% status %>,
+            proxy: "proxy?url=",
+            printService: "/geoserver/pdf/",
+            wfsURL : "http://10.1.1.145:8080/geoserver/wfs",//"http://10.0.0.153:8080/geoserver/wfs",
+            about: {
+        title: "Umi Map Test Application",
+                "Amaç": "Universal Mekansal İşlemci ",
+                contact: "Daha fazla bilgi için,  <a href='http://opengeo.org'>OpenGeo</a>."
+    },
+    defaultSourceType: "gxp_wmscsource",
+            sources: {
+        local: {
+            url: "http://10.1.1.145:8080/geoserver/ows",//"http://10.0.0.153:8080/geoserver/ows",
+                    title: "Kurum Servisleri",
+                    ptype: "gxp_wmscsource"
+        },
+        /*
+         suite: {
+         url: "http://10.0.0.153:8080/geoserver/ows",
+         title: "UniGeoSever"
+         },
+         mapquest: {
+         ptype: "gxp_mapquestsource"
+         },*/
+        osm: {
+            ptype: "gxp_osmsource"
+        },
+        google: {
+            ptype: "gxp_googlesource"
+        },
+//                bing: {
+//                    ptype: "gxp_bingsource"
+//                },
+//                mapbox: {
+//                    ptype: "gxp_mapboxsource"
+//                },
+        ol: {
+            ptype: "gxp_olsource"
+        }
+    },
+    map: {
+        projection: "EPSG:102113",
+            //projection: "EPSG:4326",//"EPSG:900913",
+                units: "m",
+                numZoomLevels:21,
+                maxResolution: 156543.0339,
+//                maxExtent: [
+//							3247131.016191,5001141.122066,3271418.881925,5013638.576189
+//                ],
+                layers: [
+
+//                {
+//                	source: "bing",
+//                    title: "Bing Harita",
+//                    name: "Aerial",//"AerialWithLabels",//"HYBRID",//"ROADMAP",
+//                    group: "background"
+//                },
+            {
+                source: "google",
+                title: "Google Harita",
+                name: "SATELLITE",//"HYBRID",//"ROADMAP",
+                group: "background"
+            },/*
+             //baselayer parametresi ile KocaeliGisSorgu.js icindeki aftermapmove event'inde max zoom icin kontrol yapiliyor.
+             /*{
+             source: "ol",
+             type: "OpenLayers.Layer.WMS",
+             group: "background",
+             args: [
+             "Kocaeli Imar",
+             "http://gis.kocaeli.bel.tr/ArcGIS/services/IMAR_YAYIN/MapServer/WMSServer?style=",
+             {layers: "1,2,3,7,8,9,10,11,12,13", format: "image/png", isBaseLayer:true}//, transparent:"true"}
+             ]
+
+             },
+
+             {
+             source: "ol",
+             type: "OpenLayers.Layer.WMS",
+             group: "background",
+             args: [
+             "Kocaeli Raster",
+             "http://gis.kocaeli.bel.tr/ArcGIS/services/UYDU_2011/MapServer/WMSServer?style=",
+             {layers: "0,1,2,3,4,5,6", format: "image/png",isBaseLayer:true}
+             ]
+
+             },
+             */
+            {
+                source: "ol",
+                group: "background",
+                fixed: true,
+                type: "OpenLayers.Layer",
+                args: [
+                    "Hiçbiri", {visibility: false}
+                ]
+            }
+            ,
+            {
+                source:"local",
+//             	group: "background",
+                name:"GIS:Ilce",
+                title:"İlçe",
+                visibility:true,
+                opacity:1,
+                selected:false,
+                format:"image/png",
+                styles:"",
+                transparent:true,
+                cached:true
+            },
+            {
+                source:"local",
+//             	group: "background",
+                name:"GIS:Mahalle",
+                title:"Mahalle",
+                visibility:true,
+                opacity:1,
+                selected:false,
+                format:"image/png",
+                styles:"",
+                transparent:true,
+                cached:true
+            },
+            {
+                source:"local",
+//             	group: "background",
+                name:"GIS:YolOrtaHat",
+                title:"Sokak",
+                visibility:true,
+                opacity:1,
+                selected:false,
+                format:"image/png",
+                styles:"",
+                transparent:true,
+                cached:true
+            },
+            {
+                source:"local",
+//             	group: "background",
+                name:"GIS:Yapi",
+                title:"Yapı",
+                visibility:true,
+                opacity:1,
+                selected:false,
+                format:"image/png",
+                styles:"",
+                transparent:true,
+                cached:true
+            },
+            {
+                source:"local",
+//             	group: "background",
+                name:"GIS:Numarataj",
+                title:"Kapı",
+                visibility:true,
+                opacity:1,
+                selected:false,
+                format:"image/png",
+                styles:"",
+                transparent:true,
+                cached:true
+            },
+             {
+                 source:"local",
+                 name:"GIS:KaziHatlari",
+                 title:"KaziHatlari",
+                 visibility:true,
+                 opacity:1,
+                 selected:false,
+                 format:"image/png",
+                 styles:"",
+                 transparent:true,
+                 cached:true
+             }
+        ],
+                center: [point.lon,point.lat],
+                zoom: 9
+    }
+    });
+
+</script>
